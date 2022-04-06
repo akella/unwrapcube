@@ -3,3 +3,5 @@
 .cache/
 .cache
 node_modules/
+.parcel-cache/
+dist

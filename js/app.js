@@ -161,18 +161,18 @@ export default class Sketch {
   }
   mouseEvents(){
 
-    // this.container.addEventListener( 'mousemove', (event)=>{
-    //   let bounds = this.container.getBoundingClientRect();
-    //   // console.log(bounds)
-    //   this.mouse.x = ( (event.clientX - bounds.x) / this.width ) * 2 - 1;
-    //   this.mouse.y = - ( (event.clientY - bounds.y) /this.height ) * 2 + 1;
-    // }, false );
+    this.container.addEventListener( 'mousemove', (event)=>{
+      let bounds = this.container.getBoundingClientRect();
+      // console.log(bounds)
+      this.mouse.x = ( (event.clientX - bounds.x) / this.width ) * 2 - 1;
+      this.mouse.y = - ( (event.clientY - bounds.y) /this.height ) * 2 + 1;
+    }, false );
 
 
     this.event.on('move', ({ position, event, inside, dragging }) => {
       let bounds = this.container.getBoundingClientRect();
-      this.mouse.x = ( (position[0] - bounds.x) / this.width ) * 2 - 1;
-      this.mouse.y = - ( (position[1] - bounds.y) /this.height ) * 2 + 1;
+      this.mouse.x = ( (position[0] ) / this.width ) * 2 - 1;
+      this.mouse.y = - ( (position[1] ) /this.height ) * 2 + 1;
 
       let deltaMove = {
           x: position[0]-this.previousMousePosition.x,
@@ -193,16 +193,16 @@ export default class Sketch {
           y: position[1]
       };
 
-      console.log(dragging)
+      // console.log(dragging)
 
     })
 
-    window.addEventListener('mousemove',()=>{
+    // window.addEventListener('mousemove',()=>{
       // update the picking ray with the camera and mouse position
-      this.raycaster.setFromCamera( this.mouse, this.camera );
+      // this.raycaster.setFromCamera( this.mouse, this.camera );
 
       // calculate objects intersecting the picking ray
-      const intersects = this.raycaster.intersectObjects( this.meshes );
+      // const intersects = this.raycaster.intersectObjects( this.meshes );
 
       // if(intersects[0]  && this.settings.progress>0.99){
       //   let meshto = intersects[0].object;
@@ -225,7 +225,7 @@ export default class Sketch {
       // }
       
       
-    })
+    // })
 
 
     window.addEventListener('click',()=>{
@@ -234,10 +234,9 @@ export default class Sketch {
 
 
       const intersects = this.raycaster.intersectObjects( this.meshes );
-
-      if(intersects[0]){
+      if(intersects[0] && this.settings.progress==0){
         let meshto = intersects[0].object;
-        console.log(meshto.userData.url)
+        console.log('GOTOURL:',meshto.userData.url)
         // window.location = meshto.userData.url
       } 
 
@@ -249,13 +248,17 @@ export default class Sketch {
   cubeRotation(){
     let deltaRotationQuaternion = new THREE.Quaternion()
         .setFromEuler(new THREE.Euler(
-            toRadians(this.speed.y * 0.1 + 0.06),
-            toRadians(this.speed.x * 0.1 + 0.06),
+            toRadians(this.speed.y * 0.1 + 0.06*this.settings.progress),
+            toRadians(this.speed.x * 0.1 + 0.06*this.settings.progress),
             0,
             'XYZ'
         ));
 
     this.cubewrap.quaternion.multiplyQuaternions(deltaRotationQuaternion, this.cubewrap.quaternion);
+    this.cubewrap.rotation.x = this.cubewrap.rotation.x*this.settings.progress
+    this.cubewrap.rotation.y = this.cubewrap.rotation.y*this.settings.progress
+    this.cubewrap.rotation.z = this.cubewrap.rotation.z*this.settings.progress
+  
   }
 
   settings() {
@@ -570,7 +573,8 @@ export default class Sketch {
 
 
     this.sides.forEach((side,i)=>{
-      // let side = this.sides[5]
+      let an;
+      if(this.settings.progress==1) {
       let start = new THREE.Vector3(0,0,1);
       let sideq = this[side.key].userData.quaternion.clone();
       let current = this.cubewrap.quaternion.clone();
@@ -581,10 +585,16 @@ export default class Sketch {
 
       let angleto = currentDir.dot(currentSideDir);
       angleto = start.angleTo(currentSideDir)
-      let an = Math.min(Math.abs(angleto), Math.abs(Math.PI - angleto))
+      an = Math.min(Math.abs(angleto), Math.abs(Math.PI - angleto))
       an = clamp(an,0,1);
-      console.log(angleto,currentDir, currentSideDir)
-      this[side.key].material.uniforms.progress.value = smoothstep(0.5,0.7,1- an)//smoothstep(0.5,0.7,angleto)
+      // console.log(angleto,currentDir, currentSideDir)
+      this[side.key].material.uniforms.progress.value = smoothstep(0.5,0.7,1- an)
+    }  else{
+      this[side.key].material.uniforms.progress.value = 0
+    }
+ 
+
+      
 
 
     })

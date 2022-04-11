@@ -197,35 +197,47 @@ export default class Sketch {
 
     })
 
-    // window.addEventListener('mousemove',()=>{
+    window.addEventListener('mousemove',()=>{
       // update the picking ray with the camera and mouse position
-      // this.raycaster.setFromCamera( this.mouse, this.camera );
+      this.raycaster.setFromCamera( this.mouse, this.camera );
 
       // calculate objects intersecting the picking ray
-      // const intersects = this.raycaster.intersectObjects( this.meshes );
+      const intersects = this.raycaster.intersectObjects( this.meshes );
 
-      // if(intersects[0]  && this.settings.progress>0.99){
-      //   let meshto = intersects[0].object;
+      if(intersects[0]  && this.settings.progress<0.99){
+        let meshto = intersects[0].object;
+        clearTimeout(meshto.userData.timeout)
 
-      //   let q = meshto.userData.quaternion
-      //   this.rotateTo(q)
-      //   console.log(meshto.material)
-      //   gsap.to(meshto.material.uniforms.progress,{
-      //     duration: 0.5,
-      //     value: 1
-      //   })
-      //   gsap.to(this.settings,{
-      //     duration: 0.5,
-      //     moving: 0
-      //   })
+        let q = meshto.userData.quaternion
+        // this.rotateTo(q)
+        // console.log(meshto.material)
+        gsap.to(meshto.material.uniforms.progress,{
+          duration: 0.5,
+          value: 1,
+          onComplete: ()=>{
+            
+            meshto.userData.timeout = setTimeout(()=>{
+
+              gsap.to(meshto.material.uniforms.progress,{
+                value: 0,
+                duration: 1
+              })
+            },1000)
+
+          }
+        })
+        // gsap.to(this.settings,{
+        //   duration: 0.5,
+        //   moving: 0
+        // })
         
         
-      // } else{
-      //   // this.isRotating = true;
-      // }
+      } else{
+        // this.isRotating = true;
+      }
       
       
-    // })
+    })
 
 
     window.addEventListener('click',()=>{
@@ -352,7 +364,7 @@ export default class Sketch {
       },
       onComplete: ()=>{
         let ms = that.meshes.map(m=>m.material.uniforms.progress)
-        console.log(ms)
+        // console.log(ms)
         setTimeout(()=>{
           this.isRotating = true;
           this.settings.moving = 1
@@ -572,32 +584,32 @@ export default class Sketch {
     this.right.position.x = .5 - s;
 
 
-    this.sides.forEach((side,i)=>{
-      let an;
-      if(this.settings.progress==1) {
-      let start = new THREE.Vector3(0,0,1);
-      let sideq = this[side.key].userData.quaternion.clone();
-      let current = this.cubewrap.quaternion.clone();
-      let currentDir = start.clone().applyQuaternion(current).normalize();
+    // this.sides.forEach((side,i)=>{
+    //   let an;
+    //   if(this.settings.progress==1) {
+    //   let start = new THREE.Vector3(0,0,1);
+    //   let sideq = this[side.key].userData.quaternion.clone();
+    //   let current = this.cubewrap.quaternion.clone();
+    //   let currentDir = start.clone().applyQuaternion(current).normalize();
       
-      let currentSideDir = start.clone().applyQuaternion(sideq).applyQuaternion(current).normalize();
-      if(i===5) currentSideDir = new THREE.Vector3(0,1,0).applyQuaternion(current).normalize();
+    //   let currentSideDir = start.clone().applyQuaternion(sideq).applyQuaternion(current).normalize();
+    //   if(i===5) currentSideDir = new THREE.Vector3(0,1,0).applyQuaternion(current).normalize();
 
-      let angleto = currentDir.dot(currentSideDir);
-      angleto = start.angleTo(currentSideDir)
-      an = Math.min(Math.abs(angleto), Math.abs(Math.PI - angleto))
-      an = clamp(an,0,1);
-      // console.log(angleto,currentDir, currentSideDir)
-      this[side.key].material.uniforms.progress.value = smoothstep(0.5,0.7,1- an)
-    }  else{
-      this[side.key].material.uniforms.progress.value = 0
-    }
+    //   let angleto = currentDir.dot(currentSideDir);
+    //   angleto = start.angleTo(currentSideDir)
+    //   an = Math.min(Math.abs(angleto), Math.abs(Math.PI - angleto))
+    //   an = clamp(an,0,1);
+    //   // console.log(angleto,currentDir, currentSideDir)
+    //   this[side.key].material.uniforms.progress.value = smoothstep(0.5,0.7,1- an)
+    // }  else{
+    //   this[side.key].material.uniforms.progress.value = 0
+    // }
  
 
       
 
 
-    })
+    // })
 
     
     // this.cubewrap.quaternion.copy( this.targetQuaternion);

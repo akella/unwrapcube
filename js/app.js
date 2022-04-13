@@ -54,7 +54,7 @@ export default class Sketch {
         texture1: aimage,
         angle: new THREE.Euler( 0, 0, 0 ),
         url: 'http://google.com/',
-        text: '111111',
+        text: 'Щосьфыasd',
         textorientation: "top"
       },
       {
@@ -63,7 +63,7 @@ export default class Sketch {
         texture1: aimage,
         angle: new THREE.Euler( 0, Math.PI, 0 ),
         url: 'http://google.com/',
-        text: '22222',
+        text: 'ЙіїЪєґфхщ',
         textorientation: "top"
       },
       {
@@ -499,6 +499,7 @@ export default class Sketch {
     this.sides.forEach(side=>{
 
       let text = new Text()
+      text.font = font;
       text.text = side.text
       text.fontSize = 0.07
       text.color = 0x000000

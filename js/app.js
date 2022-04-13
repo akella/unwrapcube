@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const random = require('canvas-sketch-util/random');
+import { Text,preloadFont } from 'troika-three-text'
 
 import fragment from "./shader/fragment.glsl";
 import vertex from "./shader/vertex.glsl";
@@ -11,20 +12,13 @@ import * as dat from "dat.gui";
 const createInputEvents = require('simple-input-events');
 import gsap from "gsap";
  
-import tfront from '../images/front.png';
-import tleft from '../images/left.png';
-import tright from '../images/right.png';
-import ttop from '../images/top.png';
-import tback from '../images/back.png';
-import tbottom from '../images/bottom.png';
+
+import timage from '../images/timage.png';
 
 
-import afront from '../images/afront.png';
-import aleft from '../images/aleft.png';
-import aright from '../images/aright.png';
-import atop from '../images/atop.png';
-import aback from '../images/aback.png';
-import abottom from '../images/abottom.png';
+import aimage from '../images/image.jpg';
+
+import font from '../font.woff'
 
 
 import bg from '../images/image.jpg';
@@ -56,45 +50,54 @@ export default class Sketch {
     this.sides =  [
        {
         key: 'front',
-        texture: tfront,
-        texture1: afront,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( 0, 0, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: '111111',
+        textorientation: "top"
       },
       {
         key: 'back',
-        texture: tback,
-        texture1: aback,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( 0, Math.PI, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: '22222',
+        textorientation: "top"
       },
       {
         key: 'bottom',
-        texture: tbottom,
-        texture1: abottom,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( -Math.PI/2, 0, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: '3333'
       },
       {
         key: 'left',
-        texture: tleft,
-        texture1: aleft,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( 0, Math.PI/2, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: 'PROMOTION'
       },
       {
         key: 'right',
-        texture: tright,
-        texture1: aright,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( 0, -Math.PI/2, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: '55555'
       },
        {
         key: 'top',
-        texture: ttop,
-        texture1: atop,
+        texture: timage,
+        texture1: aimage,
         angle: new THREE.Euler( Math.PI/2, -Math.PI/2, 0 ),
-        url: 'http://google.com/'
+        url: 'http://google.com/',
+        text: '6666',
+        textorientation: "top"
       },
     ]
     this.scene = new THREE.Scene();
@@ -112,7 +115,7 @@ export default class Sketch {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
 
     this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
+    this.mouse = new THREE.Vector2(-100,1000);
 
     this.spherical = new THREE.Spherical();
     this.rotationMatrix = new THREE.Matrix4();
@@ -149,13 +152,23 @@ export default class Sketch {
       x:0,
       y: 0,
     }
+
+    preloadFont(
+      {
+        font: font,
+        characters: 'abcdefghijklmnopqrstuvwxyzАаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯяіІєЄэЭїЇґҐ'
+      },
+      () => {
+        this.settings();
+        this.addObjects();
+        this.mouseEvents()
+        this.resize();
+        this.render();
+        this.setupResize();
+      }
+    )
     
-    this.settings();
-    this.addObjects();
-    this.mouseEvents()
-    this.resize();
-    this.render();
-    this.setupResize();
+    
     
     
   }
@@ -197,6 +210,7 @@ export default class Sketch {
 
     })
 
+    this.currentMouseover= null;
     window.addEventListener('mousemove',()=>{
       // update the picking ray with the camera and mouse position
       this.raycaster.setFromCamera( this.mouse, this.camera );
@@ -204,40 +218,100 @@ export default class Sketch {
       // calculate objects intersecting the picking ray
       const intersects = this.raycaster.intersectObjects( this.meshes );
 
-      if(intersects[0]  && this.settings.progress<0.99){
-        let meshto = intersects[0].object;
-        clearTimeout(meshto.userData.timeout)
+      
 
-        let q = meshto.userData.quaternion
-        // this.rotateTo(q)
-        // console.log(meshto.material)
-        gsap.to(meshto.material.uniforms.progress,{
-          duration: 0.5,
-          value: 1,
-          onComplete: ()=>{
+      // if(intersects[0]  && this.settings.progress<0.99){
+      //   let meshto = intersects[0].object;
+      //   clearTimeout(meshto.userData.timeout)
+
+      //   let q = meshto.userData.quaternion
+      //   // this.rotateTo(q)
+      //   // console.log(meshto.material)
+      //   gsap.to(meshto.material.uniforms.progress,{
+      //     duration: 0.5,
+      //     value: 1,
+      //     onComplete: ()=>{
             
-            meshto.userData.timeout = setTimeout(()=>{
+      //       meshto.userData.timeout = setTimeout(()=>{
 
-              gsap.to(meshto.material.uniforms.progress,{
-                value: 0,
-                duration: 1
-              })
-            },1000)
+      //         gsap.to(meshto.material.uniforms.progress,{
+      //           value: 0,
+      //           duration: 1
+      //         })
+      //       },1000)
 
+      //     }
+      //   })
+      // } 
+
+      if(this.settings.progress<0.99){
+      if(intersects[0]){
+
+        let meshto = intersects[0].object;
+
+        if(this.currentMouseover && this.currentMouseover.uuid==meshto.uuid){
+          // the same object, do nothing
+        } else{
+          // new object
+          if(this.currentMouseover){
+            // run mouseOut for OLD
+            mouseOut(this.currentMouseover)
           }
-        })
-        // gsap.to(this.settings,{
-        //   duration: 0.5,
-        //   moving: 0
-        // })
-        
-        
+          mouseOn(meshto);
+          this.currentMouseover = meshto;
+        }
+
       } else{
-        // this.isRotating = true;
+        if(this.currentMouseover) {
+          mouseOut(this.currentMouseover)
+          this.currentMouseover = null;
+        }
       }
+
+    }
       
       
     })
+
+
+    let that = this;
+
+    function mouseOn(mesh){
+      // console.log('mouseon',mesh.userData.text)
+      mesh.userData.text.color = 0xffffff
+      mesh.userData.text.sync()
+      gsap.to(mesh.material.uniforms.progress,{
+        duration: 0.5,
+        value: 1,
+        overwrite: true
+      })
+      // gsap.to(that.mysettings,{
+      //   duration: 0.5,
+      //   moving: 0,
+      //   overwrite: true
+      // })
+    }
+
+    function mouseOut(mesh){
+      // console.log('mouseoff',mesh.userData.text)
+      gsap.to(mesh.material.uniforms.progress,{
+          duration: 0.5,
+          value: 0,
+          overwrite: true
+        })
+
+        // that.isRotating = true;
+        // that.mysettings.moving = 1
+        mesh.userData.text.color = 0x000000
+        mesh.userData.text.sync()
+
+        gsap.to(mesh.material.uniforms.progress,{
+          value: 0,
+          duration: 0.3,
+          overwrite: true
+        })
+    }
+
 
 
     window.addEventListener('click',()=>{
@@ -424,9 +498,23 @@ export default class Sketch {
 
     this.sides.forEach(side=>{
 
+      let text = new Text()
+      text.text = side.text
+      text.fontSize = 0.07
+      text.color = 0x000000
+      text.anchorX = 0.43;
+      text.anchorY = 0.33
+      if(side.textorientation) text.anchorY = -0.43
+
+      // Update the rendering:
+      text.sync()
+      this[side.key+'Text']=text;
+
+
       this[side.key] = new THREE.Mesh(this.geometry, this.getMaterial(side.texture,side.texture1));
       tempQuaternion.setFromEuler( side.angle );
       this[side.key].userData.quaternion = tempQuaternion.clone();
+      this[side.key].userData.text = text;
       this[side.key].userData.url = side.url;
     })
 
@@ -491,35 +579,37 @@ export default class Sketch {
     this.gright = new THREE.Group();
     
     this.gleft.add(this.left);
-    // this.gleft.add(this.leftHG);
+    this.gleft.add(this.leftText);
     this.gtop.add(this.top);
-    // this.gtop.add(this.topHG);
+    this.gtop.add(this.topText);
     this.gbottom.add(this.bottom);
-    // this.gbottom.add(this.bottomHG);
+    this.gbottom.add(this.bottomText);
     this.gright.add(this.right);
+    this.gright.add(this.rightText);
     this.gright.add(this.gtop);
-    // this.gbottom.add(this.gback)
     this.gright.add(this.gback)
     this.gback.add(this.back)
+    this.gback.add(this.backText)
     this.cube.add(this.gright)
     this.cube.add(this.gleft)
     this.cube.add(this.gbottom)
     this.cube.add(this.front);
+    this.cube.add(this.frontText);
     this.cubewrap.add(this.cube)
-    // this.cube.position.z = -0.5;
     this.scene.add(this.cubewrap)
 
-  
+    let s = 0.003;
     this.front.position.z = 0.5;
+    this.frontText.position.z = 0.5 + s;
     this.gleft.position.z = 0.5 ;
     this.gright.position.z = 0.5;
-    // this.gtop.position.z = 0.5;
     this.gbottom.position.z = 0.5;
-    // this.gback.position.z = 0.5;
 
-    let s = 0.002;
+
     this.s =s;
     this.top.position.y = 0.5;
+    this.topText.position.y = 0.5 + s;
+    this.topText.position.z =  s;
     this.gtop.position.y = 0.5 -s;
     this.gtop.position.x = 0.5-s;
 
@@ -527,22 +617,29 @@ export default class Sketch {
     this.topH.position.y = +0.125;
 
     this.left.position.x = -0.5 + s;
+    this.leftText.position.x = -0.5 + s;
+     this.leftText.position.z = s ;
     this.gleft.position.x = -0.5;
 
     this.leftHG.position.x = -1 + s;
     this.leftH.position.x = -0.125;
 
-    this.bottom.position.y = -0.5 + s;
+    this.bottom.position.y= -0.5 + s;
+    this.bottomText.position.y = -0.5 + s;
+    this.bottomText.position.z = s;
     this.gbottom.position.y = -0.5;
 
     this.bottomHG.position.y = -1 +s;
     this.bottomH.position.y = -0.125;
 
     this.back.position.x = .5 - 2*s;
+    this.backText.position.x= .5 - 2*s;
+    this.backText.position.z= s;
     this.gback.position.x = 1.;
 
     this.right.position.x = .5 - s;
-    // this.gright.position.y = -0.5;
+    this.rightText.position.x  = .5 - s;
+    this.rightText.position.z  = s;
     this.gright.position.x = 0.5;
 
 

@@ -191,10 +191,12 @@ export default class Sketch {
           x: position[0]-this.previousMousePosition.x,
           y: position[1]-this.previousMousePosition.y
       };
+      this.dragging = false;
       
       if(dragging){
-        this.speed.x +=deltaMove.x;
-        this.speed.y +=deltaMove.y;
+        this.dragging = true;
+        this.speed.x +=0.2*deltaMove.x;
+        this.speed.y +=0.2*deltaMove.y;
         // console.log(deltaMove,'deltaMove')
         
       }
@@ -667,8 +669,12 @@ export default class Sketch {
 
     this.cubeRotation()
 
-    this.speed.x *=0.95;
-    this.speed.y *=0.95;
+    if(!this.dragging){
+      this.speed.x *=0.95;
+      this.speed.y *=0.95;
+    }
+    this.dragging =false;
+    
     // z = 1;
     let s = (this.s)*(1. - this.settings.progress)
     // fix sizes
